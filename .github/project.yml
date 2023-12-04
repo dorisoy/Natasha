@@ -78,6 +78,7 @@ samples:
   - samples/PluginSample/PluginB/PluginB.csproj
   - samples/PluginSample/PluginBase/PluginBase.csproj
   - samples/ReferenceSample/ReferenceSample.csproj
+  - samples/HotReloadSample/HotReloadSample.csproj
   global_labels:
   - name: pr_samples
     description: 此次提交包含 [案例工程] 相关的改动.
@@ -109,13 +110,13 @@ src:
       - System
       - System.Runtime.CompilerServices
       - System.Reflection
-    id: 7E92644E-9DA0-493A-B1C6-B0E9E1D1C85B
+    id: D7EDD106-B744-4E0C-9CCE-D88F29EBC983
     is_ignored: false
     is_folded: false
-    relative_path: src/Natasha.CSharp/Natasha.CSharp/Natasha.CSharp.csproj
-    project_name: Natasha.CSharp
-    package_name: DotNetCore.Natasha.CSharp
-    project_folder: src/Natasha.CSharp/Natasha.CSharp
+    relative_path: src/Natasha.CSharp/Natasha.CSharp.Compiler/Natasha.CSharp.Compiler.csproj
+    project_name: Natasha.CSharp.Compiler
+    package_name: DotNetCore.Natasha.CSharp.Compiler
+    project_folder: src/Natasha.CSharp/Natasha.CSharp.Compiler
     labels: 
     dependency_config:
       type: nuget
@@ -134,6 +135,21 @@ src:
       - name: Microsoft.Extensions.DependencyModel
         versions: 
         versions_type: 
+  - using_output:
+      enable: true
+      ignores:
+      - System
+      - System.Runtime.CompilerServices
+      - System.Reflection
+    id: 84A54AF4-0683-48D4-B9D2-465B851E1EF1
+    is_ignored: false
+    is_folded: false
+    relative_path: src/Natasha.CSharp/Natasha.CSharp.Template/Natasha.CSharp.Template.csproj
+    project_name: Natasha.CSharp.Template
+    package_name: DotNetCore.Natasha.CSharp.Template
+    project_folder: src/Natasha.CSharp/Natasha.CSharp.Template
+    labels: 
+    dependency_config: 
 test:
   folded_projects: []
   global_labels:
@@ -150,6 +166,17 @@ test:
     project_name: NatashaFunctionUT
     package_name: NatashaFunctionUT
     project_folder: test/ut/NatashaFunctionUT
+    labels: 
+    dependency_config: 
+  - trigger_pull_request_test: false
+    trigger_codecov: false
+    id: 716B9CEC-8CA2-433F-9E9A-974E536C4099
+    is_ignored: false
+    is_folded: false
+    relative_path: test/ut/PluginFunctionUT/PluginFunctionUT.csproj
+    project_name: PluginFunctionUT
+    package_name: 
+    project_folder: test/ut/PluginFunctionUT
     labels: 
     dependency_config: 
 workflow:

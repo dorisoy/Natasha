@@ -18,9 +18,9 @@ using Natasha.CSharp.Component.Domain;
 public sealed partial class AssemblyCSharpBuilder 
 {
 
-    private LoadBehaviorEnum _compileReferenceBehavior;
-    private LoadBehaviorEnum _compileAssemblyBehavior;
-    private Func<AssemblyName, AssemblyName, LoadVersionResultEnum>? _referencePickFunc;
+    private PluginLoadBehavior _compileReferenceBehavior;
+    private PluginLoadBehavior _compileAssemblyBehavior;
+    private Func<AssemblyName, AssemblyName, AssemblyLoadVersionResult>? _referencePickFunc;
     private Func<IEnumerable<MetadataReference>, IEnumerable<MetadataReference>>? _referencesFilter;
     private bool _combineReferences;
 
@@ -39,7 +39,7 @@ public sealed partial class AssemblyCSharpBuilder
     /// </summary>
     /// <param name="loadBehavior"></param>
     /// <returns></returns>
-    public AssemblyCSharpBuilder CompileWithReferenceLoadBehavior(LoadBehaviorEnum loadBehavior)
+    public AssemblyCSharpBuilder CompileWithReferenceLoadBehavior(PluginLoadBehavior loadBehavior)
     {
         _compileReferenceBehavior = loadBehavior;
         return this;
@@ -49,13 +49,13 @@ public sealed partial class AssemblyCSharpBuilder
     /// </summary>
     /// <param name="loadBehavior"></param>
     /// <returns></returns>
-    public AssemblyCSharpBuilder CompileWithAssemblyLoadBehavior(LoadBehaviorEnum loadBehavior)
+    public AssemblyCSharpBuilder CompileWithAssemblyLoadBehavior(PluginLoadBehavior loadBehavior)
     {
         _compileAssemblyBehavior = loadBehavior;
         return this;
     }
 
-    public AssemblyCSharpBuilder CompileWithSameNameReferencesFilter(Func<AssemblyName, AssemblyName, LoadVersionResultEnum>? useAssemblyNameFunc = null)
+    public AssemblyCSharpBuilder CompileWithSameNameReferencesFilter(Func<AssemblyName, AssemblyName, AssemblyLoadVersionResult>? useAssemblyNameFunc = null)
     {
         _referencePickFunc = useAssemblyNameFunc;
         return this;
@@ -89,7 +89,7 @@ public sealed partial class AssemblyCSharpBuilder
 #endif
 
         //Mark : 26ms
-        if (_compileReferenceBehavior == LoadBehaviorEnum.None)
+        if (_compileReferenceBehavior == PluginLoadBehavior.None)
         {
             _compilerOptions.SetSupersedeLowerVersions(true);
         }

@@ -37,7 +37,7 @@ public static partial class NatashaManagement
     /// <param name="type"></param>
     /// <param name="loadBehavior">加载行为,如果有相同类型的引用, 那么此枚举会比较新旧程序集版本</param>
     /// <returns></returns>
-    public static bool AddGlobalReference(Type type, LoadBehaviorEnum loadBehavior = LoadBehaviorEnum.None)
+    public static bool AddGlobalReference(Type type, PluginLoadBehavior loadBehavior = PluginLoadBehavior.None)
     {
         if (type.Assembly.IsDynamic || type.Assembly.Location == null)
         {
@@ -53,7 +53,7 @@ public static partial class NatashaManagement
     /// <param name="type"></param>
     /// <param name="loadBehavior">加载行为,如果有相同类型的引用, 那么此枚举会比较新旧程序集版本</param>
     /// <returns></returns>
-    public static bool RemoveGlobalReference(Type type, LoadBehaviorEnum loadBehavior = LoadBehaviorEnum.None)
+    public static bool RemoveGlobalReference(Type type, PluginLoadBehavior loadBehavior = PluginLoadBehavior.None)
     {
         if (type.Assembly.IsDynamic || type.Assembly.GetName() == null)
         {

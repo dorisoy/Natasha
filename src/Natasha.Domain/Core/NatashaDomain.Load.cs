@@ -3,6 +3,7 @@ using Natasha.Domain.Extension;
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.Loader;
 
@@ -13,9 +14,13 @@ using System.Runtime.Loader;
 public partial class NatashaDomain
 {
 
-    private LoadBehaviorEnum _assemblyLoadBehavior;
+    private AssemblyCompareInfomation _assemblyLoadBehavior;
 
-    public void SetAssemblyLoadBehavior(LoadBehaviorEnum loadBehavior)
+    /// <summary>
+    /// 设置加载行为
+    /// </summary>
+    /// <param name="loadBehavior">加载行为枚举</param>
+    public void SetAssemblyLoadBehavior(AssemblyCompareInfomation loadBehavior)
     {
         _assemblyLoadBehavior = loadBehavior;
     }
@@ -79,25 +84,26 @@ public partial class NatashaDomain
     /// 将流转换为程序集，并加载到域
     /// [手动释放]
     /// </summary>
-    /// <param name="stream">外部流</param>
+    /// <param name="dllStream">库文件流</param>
+    /// <param name="pdbStream">符号流</param>
     /// <returns></returns>
-    public virtual Assembly LoadAssemblyFromStream(Stream stream,Stream? pdbStream)
+    public virtual Assembly LoadAssemblyFromStream(Stream dllStream, Stream? pdbStream)
     {
-        using (stream)
+        using (dllStream)
         {
 
             Assembly assembly;
             if (Name == "Default")
             {
-                assembly = Default.LoadFromStream(stream, pdbStream);
+                assembly = Default.LoadFromStream(dllStream, pdbStream);
             }
             else
             {
-                assembly = LoadFromStream(stream, pdbStream);
+                assembly = LoadFromStream(dllStream, pdbStream);
             }
 
-            stream.Seek(0, SeekOrigin.Begin);
-            LoadAssemblyReferenceWithStream?.Invoke(assembly, stream);
+            dllStream.Seek(0, SeekOrigin.Begin);
+            LoadAssemblyReferenceWithStream?.Invoke(assembly, dllStream);
             return assembly;
 
         }
@@ -113,14 +119,33 @@ public partial class NatashaDomain
 #if DEBUG
         Debug.WriteLine($"[解析]程序集:{assemblyName.Name},全名:{assemblyName.FullName}");
 #endif
-        if (_assemblyLoadBehavior != LoadBehaviorEnum.None && Name != "Default")
+        if (_assemblyLoadBehavior != AssemblyCompareInfomation.None && Name != "Default")
         {
             var name = assemblyName.GetUniqueName();
+#if DEBUG
+            Debug.WriteLine($"\t[当前域匹配]程序集唯一名称:{assemblyName.Name}！");
+#endif
+
+            //当前域检测
+            var preAssembly = this.Assemblies.FirstOrDefault(asm => asm.GetName().GetUniqueName() == name);
+            if (preAssembly != null)
+            {
+                return preAssembly;
+            }
+
+            //默认域覆盖检测
             if (_defaultAssemblyNameCache.TryGetValue(name!, out var defaultCacheName))
             {
-                if (assemblyName.CompareWithDefault(defaultCacheName, _assemblyLoadBehavior) == LoadVersionResultEnum.UseDefault)
+#if DEBUG
+                Debug.WriteLine($"\t\t[匹配成功]源/默认域版本:{assemblyName.Version}/{defaultCacheName.Version}！");
+#endif
+                if (assemblyName.CompareWithDefault(defaultCacheName, _assemblyLoadBehavior) == AssemblyLoadVersionResult.UseDefault)
                 {
-                    return null;
+                    var defaultAsm = Default.Assemblies.FirstOrDefault(asm => asm.GetName().GetUniqueName() == name);
+                    if (defaultAsm != null)
+                    {
+                        return defaultAsm;
+                    }
                 }
             }
             //var asm = this.LoadFromAssemblyName(assemblyName);//死循环代码
@@ -133,7 +158,6 @@ public partial class NatashaDomain
             {
                 return LoadAssemblyFromFile(assemblyPath);
             }
-
             //if (!string.IsNullOrEmpty(assemblyName.CultureName) && !string.Equals("neutral", assemblyName.CultureName))
             //{
             //    foreach (var resourceRoot in _resourceRoots)
@@ -163,12 +187,12 @@ public partial class NatashaDomain
         //var result = _excludeAssembliesFunc == null ? false : _excludeAssembliesFunc(unmanagedDllName);
         //if (!result)
         //{
-            string? libraryPath = _dependencyResolver!.ResolveUnmanagedDllToPath(unmanagedDllName);
-            if (libraryPath != null && File.Exists(libraryPath))
-            {
-                return LoadUnmanagedDllFromPath(libraryPath);
-            }
-       //}
+        string? libraryPath = _dependencyResolver!.ResolveUnmanagedDllToPath(unmanagedDllName);
+        if (libraryPath != null && File.Exists(libraryPath))
+        {
+            return LoadUnmanagedDllFromPath(libraryPath);
+        }
+        //}
         return IntPtr.Zero;
 
     }

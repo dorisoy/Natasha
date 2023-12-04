@@ -27,15 +27,15 @@ namespace Natasha.CSharp.Component
         }
 
         public int Count { get { return _referenceCache.Count; } }
-        public void AddReference(AssemblyName assemblyName, MetadataReference reference, LoadBehaviorEnum loadReferenceBehavior)
+        public void AddReference(AssemblyName assemblyName, MetadataReference reference, PluginLoadBehavior loadReferenceBehavior)
         {
 
             var name = assemblyName.GetUniqueName();
-            if (loadReferenceBehavior != LoadBehaviorEnum.None)
+            if (loadReferenceBehavior != PluginLoadBehavior.None)
             {
                 if (_referenceNameCache.TryGetValue(name, out var oldAssemblyName))
                 {
-                    if (assemblyName.CompareWithDefault(oldAssemblyName, loadReferenceBehavior) == LoadVersionResultEnum.UseCustomer)
+                    if (assemblyName.CompareWithDefault(oldAssemblyName, loadReferenceBehavior) == AssemblyLoadVersionResult.UseCustomer)
                     {
                         _referenceCache!.Remove(oldAssemblyName);
                     }
@@ -49,16 +49,16 @@ namespace Natasha.CSharp.Component
             _referenceCache[assemblyName] = reference;
 
         }
-        public void AddReference(AssemblyName assemblyName, Stream stream, LoadBehaviorEnum loadReferenceBehavior = LoadBehaviorEnum.None)
+        public void AddReference(AssemblyName assemblyName, Stream stream, PluginLoadBehavior loadReferenceBehavior = PluginLoadBehavior.None)
         {
             AddReference(assemblyName, MetadataReference.CreateFromStream(stream), loadReferenceBehavior);
         }
-        public void AddReference(AssemblyName assemblyName, string path, LoadBehaviorEnum loadReferenceBehavior = LoadBehaviorEnum.None)
+        public void AddReference(AssemblyName assemblyName, string path, PluginLoadBehavior loadReferenceBehavior = PluginLoadBehavior.None)
         {
             AddReference(assemblyName, CreateMetadataReference(path), loadReferenceBehavior);
         }
 
-        public void AddReference(Assembly assembly, LoadBehaviorEnum loadReferenceBehavior = LoadBehaviorEnum.None)
+        public void AddReference(Assembly assembly, PluginLoadBehavior loadReferenceBehavior = PluginLoadBehavior.None)
         {
             if (!assembly.IsDynamic && !string.IsNullOrEmpty(assembly.Location))
             {
@@ -90,23 +90,23 @@ namespace Natasha.CSharp.Component
         {
             return _referenceCache.Values;
         }
-        internal HashSet<MetadataReference> CombineWithDefaultReferences(NatashaReferenceCache defaultCache, LoadBehaviorEnum loadBehavior = LoadBehaviorEnum.None, Func<AssemblyName, AssemblyName, LoadVersionResultEnum>? useAssemblyNameFunc = null)
+        internal HashSet<MetadataReference> CombineWithDefaultReferences(NatashaReferenceCache defaultCache, PluginLoadBehavior loadBehavior = PluginLoadBehavior.None, Func<AssemblyName, AssemblyName, AssemblyLoadVersionResult>? useAssemblyNameFunc = null)
         {
             var sets = new HashSet<MetadataReference>(_referenceCache.Values);
             var excludeNods = new HashSet<MetadataReference>();
             var defaultReferences = defaultCache._referenceCache;
             var defaultNameReferences = defaultCache._referenceNameCache; ;
-            if (loadBehavior != LoadBehaviorEnum.None || useAssemblyNameFunc != null)
+            if (loadBehavior != PluginLoadBehavior.None || useAssemblyNameFunc != null)
             {
                 foreach (var item in _referenceNameCache)
                 {
                     if (defaultNameReferences.TryGetValue(item.Key, out var defaultAssemblyName))
                     {
-                        LoadVersionResultEnum funcResult;
+                        AssemblyLoadVersionResult funcResult;
                         if (useAssemblyNameFunc != null)
                         {
                             funcResult = useAssemblyNameFunc(defaultAssemblyName, item.Value);
-                            if (funcResult == LoadVersionResultEnum.PassToNextHandler)
+                            if (funcResult == AssemblyLoadVersionResult.PassToNextHandler)
                             {
                                 funcResult = item.Value.CompareWithDefault(defaultAssemblyName, loadBehavior);
                             }
@@ -116,11 +116,11 @@ namespace Natasha.CSharp.Component
                             funcResult = item.Value.CompareWithDefault(defaultAssemblyName, loadBehavior);
                         }
 
-                        if (funcResult == LoadVersionResultEnum.UseDefault)
+                        if (funcResult == AssemblyLoadVersionResult.UseDefault)
                         {
                             excludeNods.Add(_referenceCache[item.Value]);
                         }
-                        else if (funcResult == LoadVersionResultEnum.UseCustomer)
+                        else if (funcResult == AssemblyLoadVersionResult.UseCustomer)
                         {
                             excludeNods.Add(defaultReferences[defaultAssemblyName]);
                         }

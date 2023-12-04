@@ -54,6 +54,8 @@ public static class NatashaInitializer
                 var assemblies = AppDomain.CurrentDomain.GetAssemblies();
                 CacheRuntimeAssembly(assemblies);
 
+                var namespaceCacheFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Natasha.Namespace.cache");
+
                 if (useRuntimeReference)
                 {
                     parallelLoopResults.Enqueue(InitReferenceFromRuntime(assemblies));
@@ -75,7 +77,15 @@ public static class NatashaInitializer
                     paths ??= NatashaReferencePathsHelper.GetReferenceFiles(excludeReferencesFunc);
                     if (paths != null && paths.Any())
                     {
+                        //更新缓存
                         parallelLoopResults.Enqueue(InitUsingFromPath(paths));
+                    }
+                    else if(File.Exists(namespaceCacheFilePath))
+                    {
+                        //从缓存文件中读取
+                        var namespaceCache = File.ReadAllText(namespaceCacheFilePath, Encoding.UTF8);
+                        var namespaceText = namespaceCache.Split("+?", StringSplitOptions.RemoveEmptyEntries);
+                        DefaultUsing.AddUsing(false, namespaceText);
                     }
                 }
 
@@ -88,6 +98,15 @@ public static class NatashaInitializer
                     }
                 }
                 DefaultUsing.ReBuildUsingScript();
+                if (!useRuntimeUsing && paths != null && paths.Any())
+                {
+                    var namespaceCache = new StringBuilder();
+                    foreach (var preNamespace in DefaultUsing._defaultNamesapce) 
+                    {
+                        namespaceCache.Append($"{preNamespace}+?");
+                    }
+                    File.WriteAllText(namespaceCacheFilePath, namespaceCache.ToString(), Encoding.UTF8);
+                }
 #if DEBUG
                 stopwatch.RestartAndShowCategoreInfo("[Reference]", "引用初始化", 1);
 #endif
@@ -135,7 +154,7 @@ public static class NatashaInitializer
             {
                 var metadata = AssemblyMetadata.Create(ModuleMetadata.CreateFromMetadata((IntPtr)blob, length));
                 var metadataReference = metadata.GetReference();
-                NatashaReferenceDomain.DefaultDomain.References.AddReference(assembly.GetName(), metadataReference, LoadBehaviorEnum.None);
+                NatashaReferenceDomain.DefaultDomain.References.AddReference(assembly.GetName(), metadataReference, PluginLoadBehavior.None);
             }
         });
     }
