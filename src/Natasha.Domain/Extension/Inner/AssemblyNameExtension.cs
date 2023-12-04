@@ -22,39 +22,39 @@ namespace Natasha.Domain.Extension
         /// <param name="defaultName">默认程序集名</param>
         /// <param name="loadBehavior">加载行为</param>
         /// <returns></returns>
-        public static LoadVersionResultEnum CompareWithDefault(this AssemblyName customaryName, AssemblyName defaultName, LoadBehaviorEnum loadBehavior)
+        public static AssemblyLoadVersionResult CompareWithDefault(this AssemblyName customaryName, AssemblyName defaultName, AssemblyCompareInfomation loadBehavior)
         {
-            if (loadBehavior == LoadBehaviorEnum.None)
+            if (loadBehavior == AssemblyCompareInfomation.None)
             {
-                return LoadVersionResultEnum.NoAction;
+                return AssemblyLoadVersionResult.NoAction;
             }
-            else if (loadBehavior == LoadBehaviorEnum.UseDefault)
+            else if (loadBehavior == AssemblyCompareInfomation.UseDefault)
             {
-                return LoadVersionResultEnum.UseDefault;
+                return AssemblyLoadVersionResult.UseDefault;
             }
-            else if (loadBehavior == LoadBehaviorEnum.UseCustom)
+            else if (loadBehavior == AssemblyCompareInfomation.UseCustom)
             {
-                return LoadVersionResultEnum.UseCustomer;
+                return AssemblyLoadVersionResult.UseCustomer;
             }
             else if (customaryName.Version != default && defaultName.Version != default)
             {
-                if (loadBehavior == LoadBehaviorEnum.UseHighVersion)
+                if (loadBehavior == AssemblyCompareInfomation.UseHighVersion)
                 {
                     if (customaryName.Version > defaultName.Version)
                     {
-                        return LoadVersionResultEnum.UseCustomer;
+                        return AssemblyLoadVersionResult.UseCustomer;
                     }
                 }
-                else if (loadBehavior == LoadBehaviorEnum.UseLowVersion)
+                else if (loadBehavior == AssemblyCompareInfomation.UseLowVersion)
                 {
                     if (customaryName.Version < defaultName.Version)
                     {
-                        return LoadVersionResultEnum.UseCustomer;
+                        return AssemblyLoadVersionResult.UseCustomer;
                     }
                 }
-                return LoadVersionResultEnum.UseDefault;
+                return AssemblyLoadVersionResult.UseDefault;
             }
-            return LoadVersionResultEnum.NoAction;
+            return AssemblyLoadVersionResult.NoAction;
         }
     }
 }
